@@ -1,0 +1,10 @@
+---
+- name: SSH connection
+  hosts: testservers
+  become: true
+  tasks:
+    - name: Install Key...
+      ansible.posix.authorized_key:
+        user: root
+        state: absent
+        key: "{{lookup('file','/root/.ssh/id_rsa.pub')}}"
