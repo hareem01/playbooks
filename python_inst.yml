@@ -1,0 +1,18 @@
+---
+- name: "Installing Python"
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Gather facts
+      setup:
+     
+    - name: Display Python version if installed
+      debug:
+        var: ansible_facts.python_version
+      when: ansible_facts.python_version is defined
+      
+    - name: Install Python if not installed
+      apt:
+        name: python
+        state: present
+      when: ansible_facts.python_version is not defined 
