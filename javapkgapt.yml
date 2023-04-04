@@ -1,0 +1,27 @@
+---
+- name: Check if Java is installed and install if not
+  hosts: testservers
+  become: yes
+  tasks:
+    - name: Install Java
+      become: yes
+      shell: java -version
+      register: java_version_output
+      ignore_errors: true
+
+    - name: Installing Java
+      become: yes
+      apt:
+        name: openjdk-8-jdk
+        state: present
+      when: "'java' not in java_version_output.stderr"
+
+    - name: Set JAVA_HOME environment variable
+      become: yes
+      lineinfile:
+        dest: /etc/environment
+        regexp: '^JAVA_HOME='
+        line: 'JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64'
+        state: present
+        create: yes
+
