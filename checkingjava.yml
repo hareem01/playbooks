@@ -1,6 +1,6 @@
 ---
 - name: Java Installed or Not
-  hosts: testservers
+  hosts: all
   gather_facts: False
 
   tasks:
