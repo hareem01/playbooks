@@ -1,6 +1,6 @@
 ---
 - name: Check if Java is installed and install if not
-  hosts: testservers
+  hosts: all
   become: yes
   tasks:
     - name: Install Java
