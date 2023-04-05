@@ -1,5 +1,5 @@
 ---
-- name: Java Installed or Not
+- name: Java is Installed or Not
   hosts: all
   gather_facts: False
 
