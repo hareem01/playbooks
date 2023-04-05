@@ -1,5 +1,5 @@
 ---
-- name: Check if Java is installed and install if not
+- name: Check if Java is installed and install java if not
   hosts: all
   become: yes
   tasks:
