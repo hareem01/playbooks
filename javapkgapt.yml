@@ -8,7 +8,7 @@
      - name: Gather facts
       setup:
      
-    - name: Display Python version if installed
+    - name: Display Java version if installed
       debug:
         var: ansible_facts.java_version
       when: ansible_facts.java_version is defined
