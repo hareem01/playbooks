@@ -1,6 +1,6 @@
 ---
 - name: SSH connection
-  hosts: testservers
+  hosts: all
   become: true
   tasks:
     - name: Install Key...
