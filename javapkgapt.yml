@@ -5,17 +5,20 @@
   vars:
     java_package: openjdk-11-jdk  # Change to openjdk-11-jdk or other appropriate package name
   tasks:
-    - name: Check if Java is already installed
-      command: java -version
-      register: java_version
-      ignore_errors: yes
-
-    - name: Install Java
+     - name: Gather facts
+      setup:
+     
+    - name: Display Python version if installed
+      debug:
+        var: ansible_facts.java_version
+      when: ansible_facts.java_version is defined
+      
+    - name: Install Python if not installed
       apt:
-        name: "{{ java_package }}"
+        name: "{{java_package}}"
         state: present
-      when: java_version.rc != 0
-
+      when: ansible_facts.java_version is not defined
+      
     - name: Set JAVA_HOME environment variable
       become: yes
       lineinfile:
