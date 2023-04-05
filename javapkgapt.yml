@@ -2,19 +2,19 @@
 - name: Check if Java is installed and install java if not
   hosts: all
   become: yes
+  vars:
+    java_package: openjdk-11-jdk  # Change to openjdk-11-jdk or other appropriate package name
   tasks:
-    - name: Install Java
-      become: yes
-      shell: java -version
-      register: java_version_output
-      ignore_errors: true
+    - name: Check if Java is already installed
+      command: java -version
+      register: java_version
+      ignore_errors: yes
 
-    - name: Installing Java
-      become: yes
+    - name: Install Java
       apt:
-        name: openjdk-8-jdk
+        name: "{{ java_package }}"
         state: present
-      when: "'java' not in java_version_output.stderr"
+      when: java_version.rc != 0
 
     - name: Set JAVA_HOME environment variable
       become: yes
