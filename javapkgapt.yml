@@ -13,7 +13,7 @@
         var: ansible_facts.java_version
       when: ansible_facts.java_version is defined
       
-    - name: Install Python if not installed
+    - name: Install Java if not installed
       apt:
         name: "{{java_package}}"
         state: present
@@ -24,7 +24,7 @@
       lineinfile:
         dest: /etc/environment
         regexp: '^JAVA_HOME='
-        line: 'JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64'
+        line: 'JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64'
         state: present
         create: yes
 
