@@ -37,4 +37,4 @@
       service:
         name: httpd
         state: restarted
-      
+      tags: Apache
