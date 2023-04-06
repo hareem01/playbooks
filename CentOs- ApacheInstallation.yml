@@ -1,6 +1,6 @@
 ---
 - name: Installing Apache for CentOs
-  host: all
+  hosts: all
   become: true 
   gather_facts: true
   tasks:
