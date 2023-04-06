@@ -1,30 +1,40 @@
 ---
-- name: Installing Apache for CentOs
-  hosts: all
-  become: true 
-  gather_facts: true
+- name: Install Apache and PHP
+  hosts: webserver
+  become: yes
+  vars:
+    php_packages:
+      - php
+      - php-mysql
+      - php-gd
+      - php-xml
+    apache_packages:
+      - httpd
   tasks:
-   - name: Install, configure, and start Apache
-     block:
-       - name: Install httpd and memcached
-         ansible.builtin.yum:
-           name:
-           - httpd
-           - memcached
-           state: present
+    - name: Install PHP packages
+      yum:
+        name: "{{ php_packages }}"
+        state: present
+      tags: php
 
-       - name: Apply the foo config template
-         ansible.builtin.template:
-           src: templates/src.j2
-           dest: /etc/foo.conf
+    - name: Install Apache packages
+      yum:
+        name: "{{ apache_packages }}"
+        state: present
+      tags: apache
 
-       - name: Start service bar and enable it
-         ansible.builtin.service:
-           name: bar
-           state: started
-           enabled: True
-     when: ansible_facts['distribution'] == 'CentOS'
-     become: true
-     become_user: root
-     ignore_errors: true
-  
+    - name: Set environmental variables for Apache and PHP
+      lineinfile:
+        dest: /etc/environment
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+      with_items:
+        - { regexp: '^APACHE_HOME', line: 'APACHE_HOME=/usr/share/httpd' }
+        - { regexp: '^PHP_HOME', line: 'PHP_HOME=/usr/bin' }
+      tags: env
+
+    - name: Restart Apache
+      service:
+        name: httpd
+        state: restarted
+      tags: apache
