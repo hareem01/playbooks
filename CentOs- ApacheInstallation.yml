@@ -5,7 +5,6 @@
   vars:
     php_packages:
       - php
-      - php-mysql
       - php-gd
       - php-xml
     apache_packages:
