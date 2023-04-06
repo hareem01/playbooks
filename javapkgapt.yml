@@ -6,7 +6,7 @@
     java_package: openjdk-11-jdk  # Change to openjdk-11-jdk or other appropriate package name
   tasks:
      - name: Gather facts
-      setup:
+       setup:
      
     - name: Display Java version if installed
       debug:
