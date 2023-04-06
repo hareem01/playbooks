@@ -1,0 +1,10 @@
+---
+- name: "Checking machine status"
+  hosts: all
+  tasks:
+  - name: Ping node
+    ping:
+    register: ping_result
+  - debug:
+     msg : "Servers are active"
+    when: ping_result.ping == 'pong'
