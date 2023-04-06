@@ -6,5 +6,5 @@
     ping:
     register: ping_result
   - debug:
-     msg : "Servers are active"
+     msg : "Machine is active"
     when: ping_result.ping == 'pong'
