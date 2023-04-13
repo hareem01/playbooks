@@ -1,7 +1,6 @@
 ---
 - name: "Creatinf removing updating a file"
   hosts: all
-  become: true
   tasks: 
     - name: Touch a file (creates if not present, updates modification time if present)
       win_file:
