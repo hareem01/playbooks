@@ -1,8 +1,6 @@
 ---
 - name: "Adding user to local group"
   hosts: all
-  become: true
-  gather_facts: false
   tasks: 
     - name: "Creating a local group"
       win_group:
