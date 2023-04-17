@@ -5,4 +5,4 @@
    - name: Ensure Chocolatey itself is installed and use internal repo as source
      win_chocolatey:
        name: chocolatey
-       source: http://someserver/chocolatey
+       source: http://internal/odata/repo/ChocolateyInstall.ps1
