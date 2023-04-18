@@ -1,6 +1,6 @@
 ---
 - name: Windows Firewall
-  hosts: windows
+  hosts: all
   tasks:
     - name: Disable Windows Firewall
       win_firewall:
