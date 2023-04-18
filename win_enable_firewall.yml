@@ -1,0 +1,12 @@
+---
+- name: Enabling Windows Firewall
+  hosts: all
+  tasks:
+    - name: Enable Windows Firewall
+      win_firewall:
+        state: enabled
+        profiles:
+        - Domain
+        - Private
+        - Public
+      tags: enable_firewall
