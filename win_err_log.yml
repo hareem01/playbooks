@@ -1,0 +1,34 @@
+---
+- name: Managing Logs
+  hosts: windows
+  tasks:
+    - name: Add a new event log with two custom sources
+      win_eventlog:
+        name: MyNewLog
+        sources:
+          - NewLogSource1
+          - NewLogSource2
+        state: present
+    - name: Add a new event log with custom sources
+      win_eventlog:
+        name: AnotherLog
+        sources:
+          - MyAppSource
+        state: present
+
+    - name: Write an entry to a Windows event log
+      win_eventlog_entry:
+        log: MyNewLog
+        source: NewLogSource1
+        event_id: 1234
+        message: This is a test log entry.
+
+    - name: Write another entry to a different Windows event log
+      win_eventlog_entry:
+        log: AnotherLog
+        source: MyAppSource
+        event_id: 5000
+        message: An error has occurred.
+        entry_type: Error
+        category: 5
+        raw_data: 10,20
