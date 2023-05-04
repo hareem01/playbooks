@@ -1,0 +1,21 @@
+---
+- name: "Copy a file"
+  hosts: windows
+  vars:
+    #path: /home/developer/ansible/Log-$(date '+%d-%m-%y-%H:%p').log
+    exec_date: "{{ lookup('pipe', 'date +%d-%m-%y-%H:%p') }}"
+    absolute_path: /home/developer/ansible/Log-{{exec_date}}.log
+  environment:
+    ANSIBLE_LOG_PATH: "{{absolute_path}}"
+  gather_facts: true
+  tasks:
+    - name: Create a block for failed tasks
+      block:
+        - name: install chrome
+          win_shell: install-chrome
+      rescue: 
+        - name: Copy log file
+          win_copy:
+            src: "{{absolute_path}}"
+            dest: C:\AnsibleLog
+          
