@@ -1,0 +1,128 @@
+---
+- name: Convert VM to Template
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    vm_name: "Debian11"
+    clone_name: "{{vm_name}}Clone"
+    template_file: DebianTemplate.xml
+    template_name: "{{template_path}}"
+    template_path: "/home/kvm_user/Templates/{{template_file}}"
+    clone_storage_path: "/var/lib/libvirt/images"
+    group_name: "[{{clone_name}}]"
+    output: ""
+  tasks:
+    - name: Check VM status
+      ansible.builtin.command: "virsh domstate {{ vm_name }}"
+      register: vm_status
+      changed_when: false
+      failed_when: false
+
+    - name: Shutdown the VM
+      ansible.builtin.command: "virsh shutdown {{ vm_name }}"
+      when: "vm_status.stdout == 'running'"
+      
+    - name: Create a snapshot of the VM
+      ansible.builtin.command: "virsh snapshot-create-as --domain {{ vm_name }} --name snapshot --no-metadata --atomic"
+
+    - name: Create XML from the VM definition
+      ansible.builtin.command: "virsh dumpxml {{ vm_name }}"
+      register: vm_xml
+
+    - name: Create an empty template file
+      ansible.builtin.file:
+        path: "{{template_path}}"
+        state: touch
+
+    - name: Copy XML content to template file
+      ansible.builtin.copy:
+        content: "{{ vm_xml.stdout }}"
+        dest: "{{ template_path }}"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Define the template in KVM
+      ansible.builtin.command: "virsh define {{ template_path }}"
+      delegate_to: localhost
+      run_once: true
+    
+    - name: Clone the VM from the template
+      ansible.builtin.command: "virt-clone --original-xml {{ template_name }} --name {{ clone_name }} --file {{ clone_storage_path }}/{{ clone_name }}.qcow2 --auto-clone"
+      
+    - name: Start the cloned VM
+      ansible.builtin.command: "virsh start {{ clone_name }}"
+
+### Adding Cloned Machine into Ansible Inventory and after that creating user for the cloned VM
+- name: Ip Address
+  hosts: localhost
+  gather_facts: true
+  vars:
+    vm_name: "Debian11"   #vm_name should be modified according to the vm that is already created and to be cloned
+    clone_name: "{{vm_name}}Clone"
+    group_name: "[{{clone_name}}]"
+    max_retries: 15
+    delay_seconds: 10
+    new_user: "TestUser1"
+    new_password: "Login@786"
+    output: ""
+  tasks:
+    - name: Connecting to guest
+      virt:
+        uri: qemu:///system
+        state: running
+        name: "{{clone_name}}"
+      register: qemu_guest 
+    - name: getting ip_address
+      ansible.builtin.shell: "virsh domifaddr {{clone_name}} --source agent | grep -v 'lo:' | awk '/ipv4/ && /enp1s0/ {split($4, a, \"/\"); print a[1]}'"   
+      register: ip_addr_result
+      until: ip_addr_result.stdout | regex_search('\\d+\\.\\d+\\.\\d+\\.\\d+')
+      retries: "{{ max_retries }}"
+      delay: "{{ delay_seconds }}"
+      ignore_errors: true
+    - name: Extracting IP address
+      set_fact:
+         output: "{{ ip_addr_result.stdout | regex_search('\\d+\\.\\d+\\.\\d+\\.\\d+') }}"
+    - name: Adding group
+      lineinfile:
+        path: /etc/ansible/hosts
+        line: "{{group_name}}\n{{output}}"
+        insertafter: EOF
+## Adding user for the cloned VM.... Skip Install key and ssh connection task as morpheus Agent automatically connects to the hosts      
+    - name: SSH Connection...
+      ansible.posix.authorized_key:
+        user: root
+        state: absent
+        key: "{{lookup('file','/root/.ssh/id_rsa.pub')}}"
+      delegate_to: "{{output}}"
+    - name: "Checking Sudo group Exists"
+#      gather_facts: true
+      become: true
+      delegate_to: "{{output}}"
+      group:
+        name: sudo
+        state: present
+    - name: Create a user in VM
+      user:
+        name: "{{new_user}}"
+        password: "{{new_password}}"
+        shell: /bin/bash
+        createhome: yes
+        update_password: always
+        state: present
+      become: yes
+      delegate_to: "{{output}}"           
+    - name: "Add to Sudo Group"
+      become: yes
+      user: 
+         name: "{{new_user}}"
+         groups: sudo
+         append: yes
+      delegate_to: "{{output}}"      
+    - name: Set authorized key taken from file
+      become: yes
+      ansible.posix.authorized_key:
+        user: "{{new_user}}"
+        state: present
+        key: "{{ lookup('file', '/root/.ssh/id_rsa.pub') }}" 
+      delegate_to: "{{output}}"  
